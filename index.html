@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Más datos en el mismo canal · QPSK vs 16QAM · Grupo 3 · Comunicaciones II</title>
+<meta name="description" content="Blog técnico del Proyecto Integrador de Comunicaciones II (UIS): comparación de QPSK y 16QAM con igual tasa de símbolos en GNU Radio y HackRF One.">
+<style>
+  :root{
+    --bg:#fcfcfb; --surface:#ffffff; --ink:#0b0b0b; --ink2:#52514e; --muted:#7a7873;
+    --line:#e4e3df; --qpsk:#2a78d6; --qam:#eb6834; --soft:#f4f2ee; --accent:#1d3557;
+    --radius:14px; --maxw:1080px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.65 "Segoe UI",system-ui,-apple-system,Roboto,"Helvetica Neue",Arial,sans-serif}
+  a{color:var(--qpsk)}
+  img{max-width:100%;display:block}
+  /* nav */
+  nav{position:sticky;top:0;z-index:20;background:rgba(252,252,251,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+  nav .in{max-width:var(--maxw);margin:auto;display:flex;gap:4px;align-items:center;padding:8px 20px;overflow-x:auto;white-space:nowrap}
+  nav .brand{font-weight:700;margin-right:12px;color:var(--ink);text-decoration:none}
+  nav a.l{color:var(--ink2);text-decoration:none;font-size:14px;padding:6px 10px;border-radius:8px}
+  nav a.l:hover{background:var(--soft);color:var(--ink)}
+  /* hero */
+  header.hero{background:linear-gradient(135deg,#0f2440 0%,#1d3557 55%,#2a4d7a 100%);color:#fff;padding:72px 20px 56px}
+  .hero .in{max-width:var(--maxw);margin:auto;display:grid;grid-template-columns:1.2fr .8fr;gap:40px;align-items:center}
+  .kicker{display:inline-block;font-size:13px;letter-spacing:.08em;text-transform:uppercase;background:rgba(255,255,255,.12);padding:5px 12px;border-radius:999px;margin-bottom:16px}
+  .hero h1{font-size:44px;line-height:1.12;margin:0 0 16px}
+  .hero h1 .q{color:#8cbcf5}.hero h1 .x{color:#ffab84}
+  .hero p.lead{font-size:19px;color:#dbe4f0;margin:0 0 22px}
+  .team{font-size:15px;color:#c9d6e8}
+  .team b{color:#fff;font-weight:600}
+  .question{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:var(--radius);padding:22px}
+  .question small{text-transform:uppercase;letter-spacing:.08em;color:#a9bdd8;font-size:12px}
+  .question p{font-size:21px;line-height:1.4;margin:8px 0 0;font-weight:600}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;max-width:var(--maxw);margin:-30px auto 0;padding:0 20px;position:relative;z-index:2}
+  .stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;box-shadow:0 6px 20px rgba(15,36,64,.06)}
+  .stat .v{font-size:28px;font-weight:700;line-height:1.1}
+  .stat .k{font-size:13px;color:var(--ink2)}
+  /* sections */
+  main{max-width:var(--maxw);margin:auto;padding:10px 20px 40px}
+  section{padding:46px 0 10px;border-bottom:1px solid var(--line)}
+  section:last-of-type{border-bottom:none}
+  .sec-n{font-size:13px;font-weight:700;letter-spacing:.1em;color:var(--qam);text-transform:uppercase}
+  h2{font-size:32px;line-height:1.2;margin:4px 0 18px}
+  h3{font-size:21px;margin:28px 0 8px}
+  p{margin:0 0 14px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:26px}
+  figure{margin:22px 0;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:12px}
+  figure img{border-radius:8px;cursor:zoom-in}
+  figcaption{font-size:14px;color:var(--ink2);padding:10px 4px 2px}
+  figcaption b{color:var(--ink)}
+  .callout{background:var(--soft);border-left:4px solid var(--accent);border-radius:8px;padding:14px 18px;margin:18px 0}
+  .callout.warn{border-left-color:var(--qam);background:#fdf1ea}
+  .formula{font-family:"Cambria Math","Times New Roman",serif;font-size:20px;text-align:center;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;margin:14px 0}
+  table{width:100%;border-collapse:collapse;margin:14px 0 18px;font-size:15.5px;background:var(--surface);border-radius:10px;overflow:hidden}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line)}
+  th{background:var(--soft);font-weight:600}
+  td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+  .qp{color:var(--qpsk);font-weight:700}.qa{color:var(--qam);font-weight:700}
+  .pill{display:inline-block;font-size:12.5px;padding:2px 10px;border-radius:999px;background:var(--soft);color:var(--ink2);margin-right:6px}
+  .tabs{display:flex;gap:6px;margin:14px 0 0;flex-wrap:wrap}
+  .tabs button{font:inherit;font-size:14px;border:1px solid var(--line);background:var(--surface);padding:7px 14px;border-radius:999px;cursor:pointer;color:var(--ink2)}
+  .tabs button[aria-selected=true]{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .tabpanel{display:none}.tabpanel.on{display:block}
+  .gallery{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .gallery img{aspect-ratio:4/3;object-fit:cover;border-radius:10px;border:1px solid var(--line);cursor:zoom-in;background:#fff}
+  .video{aspect-ratio:16/9;background:#0f2440;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;color:#cfdced;text-align:center;padding:20px;overflow:hidden}
+  .video iframe{width:100%;height:100%;border:0}
+  .timeline{list-style:none;padding:0;margin:0;border-left:3px solid var(--line)}
+  .timeline li{position:relative;padding:0 0 22px 24px}
+  .timeline li:before{content:"";position:absolute;left:-9px;top:6px;width:15px;height:15px;border-radius:50%;background:var(--accent);border:3px solid var(--bg)}
+  .timeline .d{font-size:13px;font-weight:700;color:var(--qam);text-transform:uppercase;letter-spacing:.06em}
+  .refs li{margin-bottom:8px;font-size:15.5px}
+  .btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;padding:11px 20px;border-radius:10px;font-weight:600;margin:6px 8px 6px 0}
+  .btn.alt{background:var(--surface);color:var(--accent);border:1px solid var(--accent)}
+  footer{background:#0f2440;color:#c9d6e8;padding:32px 20px;font-size:14px}
+  footer .in{max-width:var(--maxw);margin:auto}
+  /* lightbox */
+  #lb{position:fixed;inset:0;background:rgba(10,15,25,.9);display:none;align-items:center;justify-content:center;z-index:50;padding:24px;cursor:zoom-out}
+  #lb img{max-height:92vh;max-width:96vw;border-radius:8px;background:#fff}
+  #lb.on{display:flex}
+  @media (max-width:860px){
+    .hero .in,.grid2{grid-template-columns:1fr}
+    .hero h1{font-size:34px}
+    .stats{grid-template-columns:repeat(2,1fr)}
+    .gallery{grid-template-columns:repeat(2,1fr)}
+    body{font-size:16px}
+  }
+</style>
+</head>
+<body>
+
+<nav><div class="in">
+  <a class="brand" href="#inicio">Grupo 3 · S4</a>
+  <a class="l" href="#escenario">Escenario</a>
+  <a class="l" href="#diseno">Diseño técnico</a>
+  <a class="l" href="#gnuradio">GNU Radio</a>
+  <a class="l" href="#resultados">Resultados</a>
+  <a class="l" href="#hardware">HackRF</a>
+  <a class="l" href="#multimedia">Multimedia</a>
+  <a class="l" href="#bitacora">Bitácora</a>
+  <a class="l" href="#reflexion">Reflexión</a>
+  <a class="l" href="#ia">Uso de IA</a>
+  <a class="l" href="#referencias">Referencias</a>
+  <a class="l" href="#comentarios">Comentarios</a>
+</div></nav>
+
+<!-- ============ INICIO ============ -->
+<header class="hero" id="inicio">
+  <div class="in">
+    <div>
+      <span class="kicker">Proyecto Integrador · Comunicaciones II (27145) · UIS · 2026-2</span>
+      <h1>Más datos en el mismo canal: <span class="q">QPSK</span> vs <span class="x">16QAM</span></h1>
+      <p class="lead">¿Qué pasa si queremos enviar el doble de información sin ocupar más espectro? Lo probamos en GNU Radio y lo llevamos a un enlace real con dos radios HackRF One.</p>
+      <p class="team"><b>Nicolas Alvarez Alvarez</b> (2192317) · <b>Karoll Juliana Ruiz Martinez</b> (2224724) · <b>Liliam Daniela Rodriguez Morales</b> (2192316)<br>Escenario S4 · Mayor tasa de datos con una tasa de símbolos similar</p>
+    </div>
+    <div class="question">
+      <small>Pregunta guía</small>
+      <p>Si mantenemos la misma tasa de símbolos, ¿cuánta información extra gana 16QAM frente a QPSK y cuánto le cuesta en resistencia al ruido?</p>
+    </div>
+  </div>
+</header>
+<div class="stats">
+  <div class="stat"><div class="v">32 ksym/s</div><div class="k">Misma tasa de símbolos Rs</div></div>
+  <div class="stat"><div class="v"><span class="qp">64</span> → <span class="qa">128</span> kb/s</div><div class="k">Tasa de bits Rb</div></div>
+  <div class="stat"><div class="v">64 kHz</div><div class="k">Mismo ancho de banda (lóbulo principal)</div></div>
+  <div class="stat"><div class="v">≈ 3.7 dB</div><div class="k">Eb/N0 extra que necesita 16QAM</div></div>
+</div>
+
+<main>
+
+<!-- ============ ESCENARIO ============ -->
+<section id="escenario">
+  <div class="sec-n">01 · Escenario y problema</div>
+  <h2>Una planta que necesita enviar más, en el mismo canal</h2>
+  <p>Imaginemos una planta de producción con una banda transportadora. Sobre ella hay un nodo de inspección con una cámara y sensores, que envía sus datos por radio hasta la sala de control. Con el tiempo, la planta pide más: más imágenes, más variables, actualizaciones más rápidas. El problema es que el canal de radio asignado tiene un ancho fijo. No podemos simplemente "transmitir más rápido", porque al subir la tasa de símbolos también crece el ancho de banda.</p>
+  <p>La salida que estudiamos es meter <b>más bits en cada símbolo</b>. QPSK usa 4 puntos en el plano I/Q y lleva 2 bits por símbolo. 16QAM usa 16 puntos y lleva 4. Si las dos se envían a la misma velocidad de símbolos, ocupan el mismo espectro, pero 16QAM transporta el doble.</p>
+  <div class="callout"><b>Fenómeno físico que lo complica:</b> el ruido térmico, siempre presente en cualquier receptor. Se modela como ruido aditivo blanco gaussiano (AWGN) y "empuja" aleatoriamente cada punto de la constelación. Si el empujón es más grande que la mitad de la distancia al punto vecino, el receptor se equivoca de símbolo.</div>
+  <figure>
+    <img src="figures/escenario/fig1_escenario_contextual.png" alt="Dibujo del escenario: nave de producción con banda transportadora, nodo Tx con antena, sala de control con antena Rx y ruido AWGN">
+    <figcaption><b>Figura 1.</b> Escenario contextual. El nodo Tx sobre la banda transportadora envía datos a la sala de control (Rx) por línea de vista, a través de la ventana del muro. Arriba a la izquierda: QPSK y 16QAM comparten el mismo ancho de canal.</figcaption>
+  </figure>
+</section>
+
+<!-- ============ DISEÑO ============ -->
+<section id="diseno">
+  <div class="sec-n">02 · Diseño técnico</div>
+  <h2>Mismo Rs, mismo pulso, mismo ruido: solo cambia M</h2>
+  <p>Para que la comparación fuera justa, dejamos fijo todo lo que podía influir y solo cambiamos el número de puntos de la constelación. Estas son las relaciones que usamos:</p>
+  <div class="grid2">
+    <div class="formula">k = log₂ M &nbsp;&nbsp;·&nbsp;&nbsp; R<sub>b</sub> = R<sub>s</sub> · k</div>
+    <div class="formula">f<sub>s</sub> = R<sub>s</sub> · S<sub>ps</sub> &nbsp;&nbsp;·&nbsp;&nbsp; BW ≈ (1+β) · R<sub>s</sub></div>
+  </div>
+  <table>
+    <thead><tr><th>Parámetro</th><th class="n">QPSK</th><th class="n">16QAM</th></tr></thead>
+    <tbody>
+      <tr><td>Puntos M / bits por símbolo k</td><td class="n">4 / 2</td><td class="n">16 / 4</td></tr>
+      <tr><td>Tasa de símbolos Rs</td><td class="n">32 ksym/s</td><td class="n">32 ksym/s</td></tr>
+      <tr><td>Tasa de bits Rb</td><td class="n qp">64 kb/s</td><td class="n qa">128 kb/s</td></tr>
+      <tr><td>Muestras por símbolo / fs</td><td class="n">8 / 256 kS/s</td><td class="n">8 / 256 kS/s</td></tr>
+      <tr><td>BW lóbulo principal (pulso rectangular, 2·Rs)</td><td class="n">64 kHz</td><td class="n">64 kHz</td></tr>
+      <tr><td>BW con filtro RRC, β = 0.35</td><td class="n">≈ 43.2 kHz</td><td class="n">≈ 43.2 kHz</td></tr>
+      <tr><td>Distancia mínima entre puntos (Es = 1)</td><td class="n">1.41</td><td class="n">0.63</td></tr>
+    </tbody>
+  </table>
+  <div class="callout warn"><b>Una decisión que cambió todo: normalizar la energía.</b> La tabla de 16QAM que trae la guía usa puntos ±1 y ±3, con energía promedio 10. La de QPSK tiene energía 1. Si no corregíamos eso, con el mismo ruido 16QAM parecía <i>más</i> resistente, y era solo porque transmitía 10 veces más potencia. Por eso dividimos la tabla de 16QAM entre √10. Además, usamos codificación Gray (vecinos que difieren en un solo bit), igual que en el laboratorio con HackRF.</div>
+  <figure>
+    <img src="figures/diagramas_tecnicos/fig_constelaciones_ideales_QPSK_16QAM.png" alt="Constelaciones ideales de QPSK y 16QAM con etiquetas de bits">
+    <figcaption><b>Figura 2.</b> Constelaciones ideales con la misma energía promedio. En 16QAM los puntos quedan 2.2 veces más cerca entre sí. Esa es la raíz del compromiso.</figcaption>
+  </figure>
+  <figure>
+    <img src="figures/diagramas_tecnicos/fig2_diagrama_bloques_Tx_canal_Rx.png" alt="Diagrama de bloques del sistema Tx canal Rx con parámetros y plan de pruebas">
+    <figcaption><b>Figura 3.</b> Diagrama de bloques del sistema simulado, con los parámetros y el plan de pruebas.</figcaption>
+  </figure>
+</section>
+
+<!-- ============ GNU RADIO ============ -->
+<section id="gnuradio">
+  <div class="sec-n">03 · GNU Radio</div>
+  <h2>El flujograma y lo que le cambiamos</h2>
+  <p>Partimos del archivo del curso <code>Modulaciones_basadas_en_constelaciones_AWGN.grc</code>. Lo conservamos intacto y trabajamos sobre dos copias, una por modulación. La cadena es sencilla: una fuente de bits aleatorios, un bloque que los agrupa de a k, el <i>Chunks to Symbols</i> que convierte cada grupo en un punto de la tabla, un filtro que repite cada símbolo 8 veces (pulso rectangular) y, al final, la suma con un ruido gaussiano complejo de amplitud <code>noise_amp</code>.</p>
+  <figure>
+    <img src="figures/capturas_gnuradio/grc_16QAM_flujograma.png" alt="Captura del flujograma de 16QAM en GNU Radio Companion">
+    <figcaption><b>Figura 4.</b> Flujograma <code>Grupo03_S4_16QAM_AWGN.grc</code> en GNU Radio Companion 3.10. Con solo cambiar la tabla, GNU Radio calcula M = 16, bps = 4 y Rb = 128k.</figcaption>
+  </figure>
+  <table>
+    <thead><tr><th>Bloque / variable</th><th>Original</th><th>Nuestra versión</th><th>Por qué</th></tr></thead>
+    <tbody>
+      <tr><td><code>tabla_de_verdad_constelacion</code></td><td>OOK (0, 1)</td><td>QPSK (1, j, −j, −1) · 16QAM Gray ÷ √10</td><td>Elegir la modulación con la misma energía</td></tr>
+      <tr><td><code>noise_amp</code> (valor inicial)</td><td>0.10</td><td>0.0</td><td>Arrancar en la prueba de referencia</td></tr>
+      <tr><td>Constellation Sink</td><td>Autoescala</td><td>Ejes fijos ±1.5</td><td>Comparar capturas entre pruebas</td></tr>
+      <tr><td><code>gui_hint</code> de los visores</td><td>Uno debajo de otro</td><td>Cuadrícula</td><td>Ver tiempo, PSD y constelación juntos</td></tr>
+    </tbody>
+  </table>
+  <p><a class="btn alt" href="grc/archivos_modificados/Grupo03_S4_QPSK_AWGN.grc">Descargar GRC QPSK</a><a class="btn alt" href="grc/archivos_modificados/Grupo03_S4_16QAM_AWGN.grc">Descargar GRC 16QAM</a></p>
+</section>
+
+<!-- ============ RESULTADOS ============ -->
+<section id="resultados">
+  <div class="sec-n">04 · Experimentos y resultados</div>
+  <h2>Cuatro niveles de ruido, una sola variable</h2>
+  <p>Hicimos las mismas cuatro pruebas para las dos modulaciones y solo movimos <code>noise_amp</code>. Todo lo demás (Rs, Sps, fs, pulso, tabla) quedó igual. Para ponerle números a lo que se ve en pantalla, reprodujimos la misma cadena en Python con un receptor ideal (filtro acoplado y decisión por mínima distancia).</p>
+  <table>
+    <thead><tr><th>Prueba</th><th class="n">noise_amp</th><th class="n">Eb/N0 QPSK</th><th class="n">BER QPSK</th><th class="n">Eb/N0 16QAM</th><th class="n">BER 16QAM</th></tr></thead>
+    <tbody>
+      <tr><td>A · Referencia</td><td class="n">0.00</td><td class="n">∞</td><td class="n">0</td><td class="n">∞</td><td class="n">0</td></tr>
+      <tr><td>B · Suave</td><td class="n">0.10</td><td class="n">26.0 dB</td><td class="n">0</td><td class="n">23.0 dB</td><td class="n">0</td></tr>
+      <tr><td>C · Media</td><td class="n">0.25</td><td class="n">18.1 dB</td><td class="n">0</td><td class="n">15.1 dB</td><td class="n">0</td></tr>
+      <tr><td>D · Fuerte</td><td class="n">0.50</td><td class="n">12.0 dB</td><td class="n">0</td><td class="n">9.0 dB</td><td class="n qa">4.2 × 10⁻³</td></tr>
+    </tbody>
+  </table>
+  <p>Eb/N0 = Sps / (k · noise_amp²). Bits evaluados por prueba: 400 000 (QPSK) y 800 000 (16QAM). <a href="data/tablas_de_pruebas/tabla_pruebas_QPSK_vs_16QAM.csv">Descargar la tabla completa (CSV)</a>.</p>
+
+  <h3>Lo que muestran las capturas de GNU Radio</h3>
+  <div class="tabs" role="tablist">
+    <button role="tab" aria-selected="true" data-t="t-const">Constelación</button>
+    <button role="tab" aria-selected="false" data-t="t-psd">PSD</button>
+    <button role="tab" aria-selected="false" data-t="t-time">Señal temporal</button>
+  </div>
+  <div class="tabpanel on" id="t-const">
+    <figure>
+      <img src="figures/capturas_gnuradio/grc_constelaciones_QPSK_vs_16QAM_4pruebas.png" alt="Constelaciones de QPSK y 16QAM en las cuatro pruebas capturadas en GNU Radio">
+      <figcaption><b>Figura 5.</b> Constelaciones capturadas en GNU Radio. Con ruido medio, QPSK todavía muestra 4 nubes limpias, mientras que en 16QAM ya casi no se distinguen las 16. Con ruido fuerte, 16QAM es una mancha uniforme.</figcaption>
+    </figure>
+  </div>
+  <div class="tabpanel" id="t-psd">
+    <figure>
+      <img src="figures/capturas_gnuradio/grc_PSD_QPSK_vs_16QAM_4pruebas.png" alt="PSD de QPSK y 16QAM en las cuatro pruebas capturadas en GNU Radio">
+      <figcaption><b>Figura 6.</b> PSD capturada en GNU Radio. Las dos modulaciones tienen la misma forma: lóbulo principal de ±32 kHz y nulos en múltiplos de Rs. El ruido no ensancha el espectro, solo levanta el piso hasta unos 20 dB por debajo del pico.</figcaption>
+    </figure>
+  </div>
+  <div class="tabpanel" id="t-time">
+    <figure>
+      <img src="figures/capturas_gnuradio/grc_envolvente_QPSK_vs_16QAM_AyC.png" alt="Envolvente compleja de QPSK y 16QAM en las pruebas A y C">
+      <figcaption><b>Figura 7.</b> Envolvente compleja I(t) y Q(t). En QPSK, cada componente vale −1, 0 o +1. En 16QAM toma cuatro niveles (±0.32 y ±0.95), y con ruido medio los niveles internos y externos ya se confunden a simple vista.</figcaption>
+    </figure>
+  </div>
+
+  <h3>La curva que lo resume</h3>
+  <figure>
+    <img src="figures/diagramas_tecnicos/curva_BER_teorica_QPSK_vs_16QAM.png" alt="Curva BER vs Eb/N0 teórica y simulada de QPSK y 16QAM">
+    <figcaption><b>Figura 8.</b> BER vs Eb/N0. Para tener 1 bit malo por cada 1000, QPSK necesita ≈ 6.8 dB y 16QAM ≈ 10.5 dB. Los puntos simulados caen sobre la teoría.</figcaption>
+  </figure>
+  <div class="callout"><b>¿Por qué la constelación de 16QAM en la prueba media se ve tan mal y aun así no hubo errores?</b> El visor de GNU Radio dibuja <i>todas</i> las muestras, sin filtrar. Un receptor real promedia las 8 muestras de cada símbolo con un filtro acoplado, y eso reduce el ruido unas 8 veces en potencia (9 dB). Esto nos ayudó a entender por qué la Guía 2 insiste tanto en el filtro de recepción.</div>
+</section>
+
+<!-- ============ HARDWARE ============ -->
+<section id="hardware">
+  <div class="sec-n">05 · Validación con HackRF One</div>
+  <h2>Del simulador al aire: 16QAM a 960 MHz</h2>
+  <p>El 5 de noviembre llevamos 16QAM a hardware con dos HackRF One, uno transmitiendo y otro recibiendo, con antenas, en el laboratorio. Para que el radio recuperara el enlace con estabilidad bajamos la tasa a <b>Rs = 8 ksym/s</b> (Rb = 32 kb/s), con un filtro RRC de β = 0.5. El transmisor envía en bucle una trama conocida: un preámbulo, el mensaje <i>"LAB GNU RADIO 16QAM HACKRF 2026"</i> y un CRC. El receptor sincroniza la portadora y el reloj, corrige los giros de la constelación con el preámbulo y mide los errores.</p>
+  <table>
+    <thead><tr><th>Medida en el laboratorio</th><th class="n">Valor</th></tr></thead>
+    <tbody>
+      <tr><td>BER acumulada (mejor condición)</td><td class="n">≈ 0.34 %</td></tr>
+      <tr><td>EVM medio</td><td class="n">≈ 7.4 %</td></tr>
+      <tr><td>Tramas con CRC correcto</td><td class="n">81 %</td></tr>
+      <tr><td>Curva BER vs Eb/N0 (Fase 4)</td><td class="n"><span class="pill">pendiente</span></td></tr>
+    </tbody>
+  </table>
+  <p>Hubo una sorpresa: en una de las capturas el receptor decodificó un mensaje que no era el nuestro, con una BER cercana al 29 %. Lo más probable es que se enganchara con el transmisor de otro grupo que usaba la misma frecuencia. Ahí entendimos para qué sirven el preámbulo y el CRC: sin ellos, el receptor no tendría forma de saber que esa trama no era la correcta.</p>
+</section>
+
+<!-- ============ MULTIMEDIA ============ -->
+<section id="multimedia">
+  <div class="sec-n">06 · Multimedia</div>
+  <h2>Video de socialización y galería</h2>
+  <div class="video" id="video">
+    <!-- Reemplazar por: <iframe src="https://www.youtube.com/embed/ID_DEL_VIDEO" allowfullscreen></iframe> -->
+    <div><b>Video de socialización (8–10 min)</b><br>Próximamente</div>
+  </div>
+  <h3>Galería</h3>
+  <div class="gallery">
+    <img src="figures/evidencias_laboratorio/lab_2026-11-05_01.jpg" alt="Dos HackRF One con antenas sobre la mesa del laboratorio">
+    <img src="figures/evidencias_laboratorio/lab_2026-11-05_02.jpg" alt="Espectro recibido en el receptor HackRF">
+    <img src="figures/evidencias_laboratorio/lab_2026-11-05_03.jpg" alt="Señal I/Q enviada al HackRF transmisor">
+    <img src="figures/evidencias_laboratorio/lab_2026-11-05_13.jpg" alt="Constelación recuperada en el receptor HackRF">
+    <img src="figures/capturas_gnuradio/grc_QPSK_C_media.png" alt="Ventana de GNU Radio con QPSK en la prueba media">
+    <img src="figures/capturas_gnuradio/grc_16QAM_C_media.png" alt="Ventana de GNU Radio con 16QAM en la prueba media">
+    <img src="figures/capturas_gnuradio/grc_16QAM_B_suave.png" alt="Ventana de GNU Radio con 16QAM en la prueba suave">
+    <img src="figures/escenario/fig1_escenario_contextual.png" alt="Dibujo del escenario">
+  </div>
+  <p style="margin-top:18px"><a class="btn" href="docs/informe_final.pdf">Leer el informe IEEE (PDF)</a><a class="btn alt" href="docs/ficha_decision_tecnica.pdf">Ficha de decisión técnica</a></p>
+</section>
+
+<!-- ============ BITÁCORA ============ -->
+<section id="bitacora">
+  <div class="sec-n">07 · Bitácora y aprendizaje</div>
+  <h2>Cómo fue el camino</h2>
+  <ul class="timeline">
+    <li><div class="d">8 de octubre</div>Recibimos la guía del proyecto y revisamos los seis escenarios. Elegimos el S4 porque nos llamó la atención el compromiso entre capacidad y robustez.</li>
+    <li><div class="d">15 de octubre · Decisión técnica ciega</div>Definimos la arquitectura sin saber si era la "correcta": QPSK vs 16QAM, Rs = 32 ksym/s, Sps = 8, fs = 256 kS/s, solo AWGN, cuatro niveles de ruido y la hipótesis de que 16QAM sería más sensible al ruido.</li>
+    <li><div class="d">Fases 1 y 2 · Simulación</div><b>Dificultad:</b> al principio 16QAM parecía tan robusta como QPSK. <b>Causa:</b> su tabla tenía 10 veces más energía. <b>Solución:</b> normalizar dividiendo entre √10. También fijamos los ejes de la constelación y organizamos los visores en cuadrícula para comparar las capturas.</li>
+    <li><div class="d">Guía 2</div>Aprendimos el papel del filtro RRC (baja el ancho de banda de 64 a ≈ 43 kHz) y por qué la constelación "sobremuestreada" no es lo mismo que las decisiones del receptor.</li>
+    <li><div class="d">5 de noviembre · HackRF</div>Enlace real a 960 MHz con BER ≈ 0.34 %. Tuvimos que bajar Rs a 8 ksym/s y vimos la interferencia de otro grupo en la misma frecuencia.</li>
+    <li><div class="d">Fase 4 · <span class="pill">en curso</span></div>Integración del instrumento de medición BER (<code>e_EbN0_Sweep</code> y <code>e_BER_Curve</code>) para obtener la curva BER vs Eb/N0 real.</li>
+  </ul>
+</section>
+
+<!-- ============ REFLEXIÓN ============ -->
+<section id="reflexion">
+  <div class="sec-n">08 · Reflexión metacognitiva</div>
+  <h2>Lo que nos llevamos</h2>
+  <div class="grid2">
+    <div>
+      <h3>Qué aprendimos</h3>
+      <p>Que "más bits por símbolo" no es magia. Ganar capacidad sin gastar espectro siempre se paga en relación señal a ruido. Verlo en la pantalla, con la misma potencia y el mismo ruido, nos dejó una idea mucho más clara que la fórmula sola. También aprendimos que un detalle como normalizar la energía puede invertir por completo una conclusión.</p>
+      <h3>Qué cambiaríamos</h3>
+      <p>Habríamos incluido desde el principio un receptor con filtro acoplado dentro del propio GRC, para medir la BER directamente en GNU Radio y no solo "a ojo" en las constelaciones. Y en el laboratorio, habríamos medido primero por cable antes de pasar a las antenas.</p>
+    </div>
+    <div>
+      <h3>Qué profundizaríamos</h3>
+      <p>Una versión siguiente podría usar modulación adaptativa: medir la calidad del enlace y cambiar entre QPSK y 16QAM según el ruido, como lo hacen el Wi-Fi o el LTE. También nos gustaría repetir la medición BER por aire en distintos puntos de la planta.</p>
+      <h3>Cómo trabajamos</h3>
+      <p>Repartimos el trabajo entre simulación, documentación y laboratorio, pero las decisiones técnicas (parámetros, niveles de ruido, normalización) las discutimos y validamos entre los tres.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ USO DE IA ============ -->
+<section id="ia">
+  <div class="sec-n">09 · Uso de IA y herramientas</div>
+  <h2>Herramientas utilizadas y validación humana</h2>
+  <table>
+    <thead><tr><th>Herramienta</th><th>Para qué la usamos</th><th>Cómo la validamos</th></tr></thead>
+    <tbody>
+      <tr><td>GNU Radio Companion 3.10</td><td>Simulación de QPSK y 16QAM con AWGN y capturas</td><td>Comprobamos que M, bps, Rb y samp_rate coincidieran con los cálculos a mano</td></tr>
+      <tr><td>HackRF One + GNU Radio</td><td>Enlace real 16QAM a 960 MHz</td><td>Mensaje recibido, CRC y BER/EVM del receptor</td></tr>
+      <tr><td>Python (NumPy, Matplotlib)</td><td>Reproducir el GRC, calcular BER y graficar</td><td>BER simulada comparada con la teórica (4.25 × 10⁻³ vs 4.29 × 10⁻³)</td></tr>
+      <tr><td>Claude (asistente de IA)</td><td>Organizar el repositorio, programar la simulación, dibujar el escenario y el diagrama de bloques, y redactar borradores del informe y del blog</td><td>El equipo revisó cada parámetro, cálculo y figura contra los GRC, la guía y la teoría, y corrigió el texto antes de publicarlo</td></tr>
+    </tbody>
+  </table>
+  <p>Las ilustraciones del escenario y del diagrama de bloques se hicieron con apoyo de IA. Las etiquetas técnicas, los parámetros y los valores los definió y revisó el equipo.</p>
+</section>
+
+<!-- ============ REFERENCIAS ============ -->
+<section id="referencias">
+  <div class="sec-n">10 · Referencias</div>
+  <h2>Fuentes (formato IEEE)</h2>
+  <ol class="refs">
+    <li>J. G. Proakis and M. Salehi, <i>Digital Communications</i>, 5th ed. New York, NY, USA: McGraw-Hill, 2008.</li>
+    <li>B. Sklar, <i>Digital Communications: Fundamentals and Applications</i>, 2nd ed. Upper Saddle River, NJ, USA: Prentice Hall, 2001.</li>
+    <li>A. Goldsmith, <i>Wireless Communications</i>. Cambridge, U.K.: Cambridge Univ. Press, 2005.</li>
+    <li>S. Haykin, <i>Communication Systems</i>, 5th ed. Hoboken, NJ, USA: Wiley, 2009.</li>
+    <li>GNU Radio Project, "GNU Radio Companion," GNU Radio Wiki. [Online]. Available: <a href="https://wiki.gnuradio.org">https://wiki.gnuradio.org</a></li>
+    <li>Great Scott Gadgets, "HackRF One." [Online]. Available: <a href="https://greatscottgadgets.com/hackrf/one/">https://greatscottgadgets.com/hackrf/one/</a></li>
+    <li>O. Tíjaro and R. Zamora, "Proyecto Integrador de Comunicaciones II: Guía del estudiante," Universidad Industrial de Santander, 2026.</li>
+  </ol>
+  <p><a class="btn alt" id="repo-link" href="#">Ver el repositorio en GitHub</a></p>
+</section>
+
+<!-- ============ INTERACCIÓN ============ -->
+<section id="comentarios">
+  <div class="sec-n">11 · Interacción</div>
+  <h2>¿Preguntas o comentarios?</h2>
+  <p>Nos encantaría saber qué te pareció el proyecto, si algo no quedó claro o si se te ocurre una mejora. Puedes dejarnos un comentario abriendo un <i>issue</i> en el repositorio (solo necesitas una cuenta de GitHub).</p>
+  <p><a class="btn" id="issue-link" href="#">Dejar un comentario</a></p>
+</section>
+
+</main>
+
+<footer>
+  <div class="in">
+    <p><b>Declaración de originalidad y responsabilidad.</b> Los integrantes del Grupo 3 declaramos que este trabajo es de nuestra autoría, que las fuentes consultadas están citadas y que el uso de herramientas de inteligencia artificial se declara en la sección correspondiente. Asumimos la responsabilidad por la veracidad de los datos, las figuras y las conclusiones aquí presentadas.</p>
+    <p>Nicolas Alvarez Alvarez (2192317) · Karoll Juliana Ruiz Martinez (2224724) · Liliam Daniela Rodriguez Morales (2192316)<br>Comunicaciones II (27145) · Escuela de Ingenierías Eléctrica, Electrónica y de Telecomunicaciones · Universidad Industrial de Santander · Noviembre de 2026</p>
+  </div>
+</footer>
+
+<div id="lb" role="dialog" aria-label="Imagen ampliada"><img alt=""></div>
+
+<script>
+  // Pestañas de resultados
+  document.querySelectorAll('.tabs button').forEach(function(b){
+    b.addEventListener('click',function(){
+      document.querySelectorAll('.tabs button').forEach(function(x){x.setAttribute('aria-selected','false')});
+      document.querySelectorAll('.tabpanel').forEach(function(p){p.classList.remove('on')});
+      b.setAttribute('aria-selected','true');
+      document.getElementById(b.dataset.t).classList.add('on');
+    });
+  });
+  // Ampliar imágenes
+  var lb=document.getElementById('lb'), lbi=lb.querySelector('img');
+  document.querySelectorAll('figure img, .gallery img').forEach(function(im){
+    im.addEventListener('click',function(){lbi.src=im.src;lbi.alt=im.alt;lb.classList.add('on')});
+  });
+  lb.addEventListener('click',function(){lb.classList.remove('on')});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')lb.classList.remove('on')});
+  // Enlaces al repositorio y a issues, deducidos de la URL de GitHub Pages (usuario.github.io/repo/)
+  (function(){
+    var h=location.hostname, parts=location.pathname.split('/').filter(Boolean);
+    var repo='https://github.com';
+    if(h.endsWith('.github.io')){
+      repo='https://github.com/'+h.split('.')[0]+'/'+(parts[0]||'ComunicacionesII_Grupo03');
+    }
+    document.getElementById('repo-link').href=repo;
+    document.getElementById('issue-link').href=repo+(repo==='https://github.com'?'':'/issues/new');
+  })();
+</script>
+</body>
+</html>

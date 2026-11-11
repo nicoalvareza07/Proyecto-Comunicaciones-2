@@ -1,0 +1,24 @@
+{
+  "version": "COM2-BETA-DECISION-1",
+  "group": "Grupo 3",
+  "members": "Nicolas Alvarez Alvarez - Karoll Juliana Ruiz Martinez - Liliam Daniela Rodriguez Morales",
+  "scenario": "s4",
+  "scenarioName": "S4 · Aumentar la tasa de datos sin aumentar la tasa de símbolos",
+  "problem": 0,
+  "modulation": 6,
+  "grc": 1,
+  "pack": 0,
+  "pulse": 0,
+  "bw": 0,
+  "perturbation": 0,
+  "variable": 3,
+  "levels": 0,
+  "observables": [
+    0,
+    1,
+    4
+  ],
+  "hypothesis": 0,
+  "justification": "El escenario busca aumentar Rb sin aumentar Rs ni el ancho de banda, por lo que comparamos QPSK (2 bits/símbolo) y 16QAM (4 bits/símbolo) usando el GRC de constelaciones con AWGN. Con Rs=32 ksym/s, SPS=8 y fs=256 kS/s (se cumple fs=Rs·SPS), se obtiene Rb=64 kb/s para QPSK y 128 kb/s para 16QAM. Al mantener la misma Rs y el mismo pulso, ambas ocupan aproximadamente el mismo BW, lo cual se verificará en la PSD. Con energía promedio normalizada, la distancia mínima entre puntos de 16QAM es menor que la de QPSK, por lo que con el mismo ruido sus símbolos se confunden antes. Por eso se varía un único nivel de ruido común (referencia, suave, medio y fuerte) y se observan la constelación, la PSD y las tasas calculadas.",
+  "timestamp": "2026-10-15T19:42:49.634Z"
+}

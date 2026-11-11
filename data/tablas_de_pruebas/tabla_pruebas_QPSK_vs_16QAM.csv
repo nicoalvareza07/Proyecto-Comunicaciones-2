@@ -1,0 +1,9 @@
+prueba,severidad,modulacion,M,k,Rs_sym_s,Sps,fs_S_s,Rb_b_s,pulso,noise_amp,P_senal,SNR_muestra_dB,EsN0_dB,EbN0_dB,SER_muestra_a_muestra,SER_filtro_acoplado,BER_filtro_acoplado,BER_teorica,bits_simulados
+A,Referencia,QPSK,4,2,32000,8,256000,64000,rectangular h=[1]*Sps,0.0,1.0,inf,inf,inf,0.0,0.0,0.0,0.0,400000
+B,Suave,QPSK,4,2,32000,8,256000,64000,rectangular h=[1]*Sps,0.1,1.0,20.0,29.03,26.02,0.0,0.0,0.0,2.6979328058047182e-176,400000
+C,Media,QPSK,4,2,32000,8,256000,64000,rectangular h=[1]*Sps,0.25,1.0,12.04,21.07,18.06,6e-05,0.0,0.0,5.6121485864915445e-30,400000
+D,Fuerte,QPSK,4,2,32000,8,256000,64000,rectangular h=[1]*Sps,0.5,1.0,6.02,15.05,12.04,0.0449,0.0,0.0,7.70862895014001e-09,400000
+A,Referencia,16QAM,16,4,32000,8,256000,128000,rectangular h=[1]*Sps,0.0,1.0001,inf,inf,inf,0.0,0.0,0.0,0.0,800000
+B,Suave,16QAM,16,4,32000,8,256000,128000,rectangular h=[1]*Sps,0.1,0.9983,19.99,29.02,23.0,1e-05,0.0,0.0,4.865288906816647e-37,800000
+C,Media,16QAM,16,4,32000,8,256000,128000,rectangular h=[1]*Sps,0.25,0.9989,12.04,21.07,15.05,0.10732,0.0,0.0,1.5976254135113007e-07,800000
+D,Fuerte,16QAM,16,4,32000,8,256000,128000,rectangular h=[1]*Sps,0.5,0.9991,6.02,15.05,9.03,0.4791,0.016885,0.00424625,0.0042932355882611545,800000
