@@ -4,6 +4,7 @@
 Proyecto Integrador · Comunicaciones II (27145) · Universidad Industrial de Santander · 2026-2
 
 >  **Blog del proyecto:** _[PENDIENTE: pegar aquí el enlace público al blog]_
+
 >  **Video de socialización:** https://youtu.be/GtYRcSvRmO4
 
 ## Integrantes · Grupo 3
