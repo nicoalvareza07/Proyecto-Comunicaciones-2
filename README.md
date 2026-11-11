@@ -3,8 +3,8 @@
 **Escenario S4 · Mayor tasa de datos con una tasa de símbolos similar**
 Proyecto Integrador · Comunicaciones II (27145) · Universidad Industrial de Santander · 2026-2
 
-> 📝 **Blog del proyecto:** _[PENDIENTE: pegar aquí el enlace público al blog]_
-> 🎥 **Video de socialización:** _[PENDIENTE: enlace al video de 8–10 min]_
+>  **Blog del proyecto:** _[PENDIENTE: pegar aquí el enlace público al blog]_
+>  **Video de socialización:** https://youtu.be/GtYRcSvRmO4
 
 ## Integrantes · Grupo 3
 
